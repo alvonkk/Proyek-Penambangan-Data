@@ -1,0 +1,1079 @@
+---
+title: 'USIP 2 : Rangkuman Klasifikasi_215314156'
+author: "Alvon Kaka"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## A. CART menggunakan LIBRARY RPART
+
+
+
+### Step 1) Import Data
+Data yang akan digunakan ialah data heart disease. Adapun datanya adalah sebagai berikut:
+```{r}
+#Import Data
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+str(trainData)
+
+```
+
+```{r}
+trainData
+```
+
+### Step 2) Preprocessing Data
+
+Beberapa tahapan preprosesing data yang perlu dilakukan :
+
+1. Pastikan dataset telah memiliki kelas tujuan yang bertipe kategorikal (kasus klasifikasi).
+2. Tidak ada data yang NA / bernilai null
+3. Tentukan variabel-variabel yang akan digunakan untuk proses klasifikasi. Variabel yang tidak digunakan dapat dihilangkan.
+4. Pada tahap ini perhatikan dataset yang digunakan. Tentukan class tujuan dan ubah tipe dari class tujuan.
+5. Jika diperlukan lakukan proses suffle dataset (mengacak kembali dataset), terutama jika dataset yang digunakan akan digunakan untuk training dan testing.
+
+Untuk kasus ini tahapan preprosesing yang dilakukan adalah membuat variabel **Target** menjadi bertipe factor karena merupakan atribut/variabel kategorikal sebagai kelas tujuan.
+
+```{r}
+trainData$Target <- factor(trainData$Target)
+str(trainData)
+```
+
+### Step 3) Membuat training data dan testing data
+Data testing dibuat pada file terpisah
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+testData$Target <- factor(testData$Target)
+str(testData)
+```
+
+### Step 4) : Membangun model
+untuk membangun model, gunakan fungsi **rpart** dari library **rpart**.
+```{r}
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+##default:
+fit <- rpart(Target~.,data=trainData,method="class")
+fit
+```
+
+```{r}
+## tuning:
+fit <- rpart(Target~.,data=trainData,method="class",control=rpart.control(minsplit=2))
+fit
+```
+
+```{r}
+##atau
+fit <- rpart(Target~Age+Sex+CP+Trestbps+Chol+Fbs+Restecg+Thalach+Exang+	Oldpeak+Slope+Ca+Thal
+,data=trainData,method="class",control=rpart.control(minsplit=2))
+fit
+```
+
+```{r}
+##atau
+formula <- Target~Age+Sex+CP+Trestbps+Chol+Fbs+Restecg+Thalach+Exang+	Oldpeak+Slope+Ca+Thal
+## fit <- rpart(formula,data=trainData,method="class")
+fit <- rpart(formula,data=trainData,control=rpart.control(minsplit=2))
+fit
+```
+
+```{r}
+#menggambarkan plot hasil decision tree menggunakan rpart.plot()
+library(rpart.plot)
+rpart.plot(fit,extra=106)
+```
+
+```{r}
+#menggambarkan plot hasil decision tree menggunakan plot()
+plot(fit,margin=0.08)
+text(fit, use.n=TRUE,pretty=TRUE,cex=0.5)
+```
+
+```{r}
+#menggambarkan plot hasil decision tree menggunakan fungsi fancyRpartPlot() dari library rattle()
+library(rattle)
+```
+
+```{r}
+fancyRpartPlot(fit)
+```
+
+### Step 5) : Membuat prediksi
+
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+library(caret)
+```
+
+```{r}
+testData$Age <- as.numeric(testData$Age)
+testData$Sex <- as.numeric(testData$Sex)
+testData$CP <- as.numeric(testData$CP)
+testData$Trestbps <- as.numeric(testData$Trestbps)
+testData$Chol <- as.numeric(testData$Chol)
+testData$Fbs <- as.numeric(testData$Fbs)
+testData$Restecg <- as.numeric(testData$Restecg)
+testData$Thalach <- as.numeric(testData$Thalach)
+testData$Exang <- as.numeric(testData$Exang)
+testData$Oldpeak <- as.numeric(testData$Oldpeak)
+testData$Slope <- as.numeric(testData$Slope)
+testData$Ca <- as.numeric(testData$Ca)
+testData$Thal <- as.numeric(testData$Thal)
+testData$Target <- factor(testData$Target)
+str(testData)
+```
+
+```{r}
+trainData$Age <- as.factor(trainData$Age)
+trainData$Sex <- as.factor(trainData$Sex)
+trainData$CP <- as.factor(trainData$CP)
+trainData$Trestbps <- as.factor(trainData$Trestbps)
+trainData$Chol <- as.factor(trainData$Chol)
+trainData$Fbs <- as.factor(trainData$Fbs)
+trainData$Restecg <- as.factor(trainData$Restecg)
+trainData$Thalach <- as.factor(trainData$Thalach)
+trainData$Exang <- as.factor(trainData$Exang)
+trainData$Oldpeak <- as.factor(trainData$Oldpeak)
+trainData$Slope <- as.factor(trainData$Slope)
+trainData$Ca <- as.factor(trainData$Ca)
+trainData$Thal <- as.factor(trainData$Thal)
+trainData$Target <- as.factor(trainData$Target)
+str(trainData)
+```
+
+
+```{r}
+str(trainData)
+str(testData)
+```
+
+
+```{r}
+prediksi <- predict(fit,newdata=testData,type="class")
+prediksi
+```
+
+```{r}
+table_mat <- table(testData$Target,prediksi)
+table_mat
+```
+
+
+
+```{r}
+library(caret)
+confusionMatrix(table(testData$Target, prediksi))
+```
+
+
+## B. Membangun Decision Tree menggunakan algoritma C45 = J48 dari Weka
+
+### Step 1) Import Data
+Data yang akan digunakan ialah data heart disease. Adapun datanya adalah sebagai berikut:
+```{r}
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+str(trainData)
+```
+### Step 2) Preprocessing Data
+Beberapa tahapan preprosesing data yang perlu dilakukan :
+
+1. Pastikan dataset telah memiliki kelas tujuan yang bertipe kategorikal (kasus klasifikasi).
+2. Tidak ada data yang NA / bernilai null
+3. Tentukan variabel-variabel yang akan digunakan untuk proses klasifikasi. Variabel yang tidak digunakan dapat dihilangkan.
+4. Pada tahap ini perhatikan dataset yang digunakan. Tentukan class tujuan dan ubah tipe dari class tujuan.
+5. Jika diperlukan lakukan proses suffle dataset (mengacak kembali dataset), terutama jika dataset yang digunakan akan digunakan untuk training dan testing.
+
+Untuk kasus ini tahapan preprosesing yang dilakukan adalah membuat variabel **Target** menjadi bertipe factor karena merupakan atribut/variabel kategorikal sebagai kelas tujuan.
+```{r}
+trainData
+```
+
+### Step 3) Membuat training data dan testing data
+Data testing dibuat pada file terpisah
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+testData$Target <- factor(testData$Target)
+str(testData)
+```
+
+```{r}
+testData
+```
+
+### Step 4) : Membangun model
+untuk membangun model, gunakan fungsi J48 merupakan algoritma C4.5 dari library RWeka. Sintaknya adalah :
+```{r}
+Sys.setenv('JAVA_HOME'="C:/Program Files/Java/jdk-12.0.2/")
+library(RWeka)
+```
+
+```{r}
+library(rJava)
+##install.packages("rJava")
+
+##default:
+trainData$Age <- factor(trainData$Age)
+trainData$Sex <- factor(trainData$Sex)
+trainData$CP <- factor(trainData$CP)
+trainData$Trestbps <- factor(trainData$Trestbps)
+trainData$Chol <- factor(trainData$Chol)
+trainData$Fbs <- factor(trainData$Fbs)
+trainData$Restecg <- factor(trainData$Restecg)
+trainData$Thalach <- factor(trainData$Thalach)
+trainData$Exang <- factor(trainData$Exang)
+trainData$Oldpeak <- factor(trainData$Oldpeak)
+trainData$Slope <- factor(trainData$Slope)
+trainData$Ca <- factor(trainData$Ca)
+trainData$Thal <- factor(trainData$Thal)
+trainData$Target <- factor(trainData$Target)
+str(trainData)
+```
+
+
+
+```{r}
+# Tentukan formula
+formula <- Target ~ Age + Sex + CP + Trestbps + Chol + Fbs + Restecg + Thalach + Exang + Oldpeak + Slope + Ca + Thal
+
+# Buat model J48
+fit <- J48(formula, data = trainData)
+print(fit)
+```
+
+```{r}
+summary(fit)
+```
+
+```{r}
+## menggambarkan plot
+plot(fit)
+```
+
+```{r}
+if(require("partykit", quietly = TRUE)) plot(fit)
+```
+
+```{r}
+table(predict(fit), trainData$Target)
+```
+### Step 5) : Membuat prediksi
+Untuk membuat prediksi, menggunakan fungsi predict(). Secara default syntax untuk melakukan prediksi dari R decision tree adalah :
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+testData$Target <- factor(testData$Target)
+## str(testData)
+testData$Age <- factor(testData$Age)
+testData$Sex <- factor(testData$Sex)
+testData$CP <- factor(testData$CP)
+testData$Trestbps <- factor(testData$Trestbps)
+testData$Chol <- factor(testData$Chol)
+testData$Fbs <- factor(testData$Fbs)
+testData$Restecg <- factor(testData$Restecg)
+testData$Thalach <- factor(testData$Thalach)
+testData$Exang <- factor(testData$Exang)
+testData$Oldpeak <- factor(testData$Oldpeak)
+testData$Slope <- factor(testData$Slope)
+testData$Ca <- factor(testData$Ca)
+testData$Thal <- factor(testData$Thal)
+testData$Target <- factor(testData$Target)
+str(testData)
+```
+
+```{r}
+prediksi <- predict(fit,newdata=testData,type="class")
+prediksi
+```
+
+```{r}
+table_mat <- table(testData$Target,prediksi)
+table_mat
+```
+
+```{r}
+library(caret)
+confusionMatrix(table(testData$Target,prediksi))
+```
+
+```{r}
+control <- Weka_control(R=TRUE,M=2)
+    tune_fit <- J48(Target~.,data=trainData,control=Weka_control(R=FALSE,M=3))
+    tune_fit
+
+```
+
+```{r}
+plot(tune_fit)
+```
+
+```{r}
+prediksifit <- predict(tune_fit,newdata=testData)
+    prediksifit
+```
+
+```{r}
+confusionMatrix(table(testData$Target,prediksifit))
+```
+
+## C. Membangun Decision Tree menggunakan algoritma PART = PART dari RWeka
+
+### Step: Membangun model
+untuk membangun model, gunakan fungsi J48 merupakan algoritma PART dari library RWeka. Sintaknya adalah :
+```{r}
+# Tentukan formula
+formula <- Target ~ Age + Sex + CP + Trestbps + Chol + Fbs + Restecg + Thalach + Exang + Oldpeak + Slope + Ca + Thal
+
+fit <- PART(formula, data = trainData)
+print(fit)
+```
+
+```{r}
+summary(fit)
+```
+
+```{r}
+# Tentukan formula
+#formula <- Target ~ Age + Sex + CP + Trestbps + Chol + Fbs + Restecg + Thalach + Exang + Oldpeak + Slope + Ca + Thal
+
+#fit <- PART(formula, data = trainData)
+#print(fit)
+```
+
+```{r}
+table(predict(fit), trainData$Target)
+```
+### Step: Membuat prediksi
+
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+
+testData$Age <- factor(testData$Age)
+testData$Sex <- factor(testData$Sex)
+testData$CP <- factor(testData$CP)
+testData$Trestbps <- factor(testData$Trestbps)
+testData$Chol <- factor(testData$Chol)
+testData$Fbs <- factor(testData$Fbs)
+testData$Restecg <- factor(testData$Restecg)
+testData$Thalach <- factor(testData$Thalach)
+testData$Exang <- factor(testData$Exang)
+testData$Oldpeak <- factor(testData$Oldpeak)
+testData$Slope <- factor(testData$Slope)
+testData$Ca <- factor(testData$Ca)
+testData$Thal <- factor(testData$Thal)
+testData$Target <- factor(testData$Target)
+str(testData)
+```
+
+```{r}
+prediksi <- predict(fit,newdata=testData,type="class")
+prediksi
+```
+
+```{r}
+table_mat <- table(testData$Target,prediksi)
+table_mat
+```
+
+```{r}
+library(caret)
+confusionMatrix(table(testData$Target,prediksi))
+```
+
+## D. Membangun Decision Tree menggunakan algoritma CTREE Fungsi CTREE dari Package Party
+
+### Step: Membangun model decision Tree CTREE
+untuk membangun model, gunakan fungsi **ctree** (conditional inference trees)  dari library **party**.
+```{r}
+library(party)
+```
+
+```{r}
+trainData$Age <- factor(trainData$Age)
+trainData$Sex <- factor(trainData$Sex)
+trainData$CP <- factor(trainData$CP)
+trainData$Trestbps <- factor(trainData$Trestbps)
+trainData$Chol <- factor(trainData$Chol)
+trainData$Fbs <- factor(trainData$Fbs)
+trainData$Restecg <- factor(trainData$Restecg)
+trainData$Thalach <- factor(trainData$Thalach)
+trainData$Exang <- factor(trainData$Exang)
+trainData$Oldpeak <- factor(trainData$Oldpeak)
+trainData$Slope <- factor(trainData$Slope)
+trainData$Ca <- factor(trainData$Ca)
+trainData$Thal <- factor(trainData$Thal)
+trainData$Target <- factor(trainData$Target)
+str(trainData)
+```
+
+```{r}
+formula <- Target ~ Age + Sex + CP + Trestbps + Chol + Fbs + Restecg + Thalach + Exang + Oldpeak + Slope + Ca + Thal
+
+fit <- ctree(formula = Target ~ ., data = trainData)
+
+
+# Cetak model ctree
+fit
+```
+
+
+```{r}
+## menggambarkan plot
+plot(fit)
+```
+
+```{r}
+table(predict(fit), trainData$Target)
+```
+
+```{r}
+library(caret)
+```
+
+
+```{r}
+# Membaca data uji
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+
+# Mengonversi kolom menjadi faktor dengan tingkat yang sesuai
+testData$Age <- factor(testData$Age, levels = levels(trainData$Age))
+testData$Sex <- factor(testData$Sex, levels = levels(trainData$Sex))
+testData$CP <- factor(testData$CP, levels = levels(trainData$CP))
+testData$Trestbps <- factor(testData$Trestbps, levels = levels(trainData$Trestbps))
+testData$Chol <- factor(testData$Chol, levels = levels(trainData$Chol))
+testData$Fbs <- factor(testData$Fbs, levels = levels(trainData$Fbs))
+testData$Restecg <- factor(testData$Restecg, levels = levels(trainData$Restecg))
+testData$Thalach <- factor(testData$Thalach, levels = levels(trainData$Thalach))
+testData$Exang <- factor(testData$Exang, levels = levels(trainData$Exang))
+testData$Oldpeak <- factor(testData$Oldpeak, levels = levels(trainData$Oldpeak))
+testData$Slope <- factor(testData$Slope, levels = levels(trainData$Slope))
+testData$Ca <- factor(testData$Ca, levels = levels(trainData$Ca))
+testData$Thal <- factor(testData$Thal, levels = levels(trainData$Thal))
+testData$Target <- factor(testData$Target, levels = levels(trainData$Target))
+
+str(testData)
+
+
+```
+
+
+```{r}
+# Perbaiki code program
+prediksi <- predict(fit,newdata=testData,type="response")
+prediksi
+
+```
+
+```{r}
+table_mat <- table(testData$Target,prediksi)
+table_mat
+```
+
+### Step: Membuat prediksi
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+library(caret)
+    confusionMatrix(table(testData$Target,prediksi))
+```
+
+## E. Random Forest
+
+### Step 1) Import Data
+Data yang akan digunakan ialah data heart disease. Adapun datanya adalah sebagai berikut:
+```{r}
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+str(trainData)
+```
+
+```{r}
+trainData
+```
+
+###Step 2) Mentraining model
+Salah satu cara untuk melakukan evaluasi terhadap sebuah model adalah men-train model pada sekumpulan dataset yang lebih kecil dan mengevaluasinya menggunakan data testing yang lebih kecil. Teknik evaluasi ini dikenal dengan feature F-fold-cross-validation. R memiliki sebuah fungsi yang membagi sejumlah data secara random dengan ukuran yang sama. Sebagai contoh, jika k=9 maka model dievaluasi menggunakan 9 folder dan ditesting pada sisa dataset nya. Proses ini diulang sampai seluruh subset selesai dievaluasi. Teknik ini banyak digunakan untuk melakukan pemilihan model, terutama jika model memerlukan parameter yang perlu disetting
+
+Setelah mengetahui cara untuk melakukan evaluasi, maka selanjutnya adalah memilih parameter yang dapat mengeneralisasi data yang paling baik.
+
+Random Forest memilih secara acak fitur/varibel dan membangun banyak Decision Tree. Model menghitung rata-rata semua prediksi dari Decision tree.
+
+Random Forest memiliki beberapa parameter yang dapt diubah untuk meningkatan generalisasi dari prediksi.
+
+Fungsi RandomForest() digunakan untuk melakukan training model
+```{r}
+library(randomForest)
+```
+
+```{r}
+library(caret)
+```
+
+```{r}
+library(e1071)
+```
+
+```{r}
+trControl <- trainControl(method="cv", number=5,search="grid")
+```
+
+```{r}
+trainData$Target <- factor(trainData$Target)
+str(trainData)
+```
+
+
+```{r}
+set.seed(1234)
+
+# Run the model
+rf_default <- train(Target~.,
+    data = trainData,
+    method = "rf",
+    metric = "Accuracy",
+    trControl = trControl)
+```
+
+```{r}
+# Print the results
+print(rf_default)
+```
+Analisis hasil : Algoritma menggunakan 500 tree dan ditesting menggunakan nilai mtry yang berbeda-beda yaitu 2, 7, 13. Final model yang digunakan adalah mtry=2 dengan akurasi 0.58
+
+Membangun model random forest dapat dilakukan dengan memanggil fungsi randomforest
+```{r}
+rf_default2 <- randomForest(trainData)
+print(rf_default2)
+```
+
+```{r}
+summary(rf_default2)
+```
+
+```{r}
+rf_default2
+```
+
+```{r}
+importance(rf_default2)
+```
+
+```{r}
+varImpPlot(rf_default2)
+```
+
+###Step 3): Membuat fungsi akurasi
+Untuk dapat meningkatkan akurasi dari model yang menggunakan nilai default dapat dengan berbagai cara yaitu:
+
+Find the best number of mtry
+Find the best number of maxnodes
+Find the best number of ntrees
+Evaluate the model on the test dataset
+```{r}
+set.seed(1234)
+tuneGrid <- expand.grid(.mtry = c(1:10))
+rf_mtry <- train(Target~.,
+    data = trainData,
+    method = "rf",
+    metric = "Accuracy",
+    tuneGrid = tuneGrid,
+    trControl = trControl,
+    importance = TRUE,
+    nodesize = 14,
+    ntree = 300)
+```
+
+```{r}
+print(rf_mtry)
+```
+
+```{r}
+## menyimpan nilai mtry terbaik
+best_mtry <- rf_mtry$bestTune$mtry
+best_mtry
+```
+
+```{r}
+##Menyimpan dan menggunakan
+max(rf_mtry$results$Accuracy)
+```
+
+Diperoleh menggunakan model mtry=1
+
+Search the best maxnodes
+Untuk mengevaluasi model, maka perlu membuat loop untuk membuat evaluasi terhadap beberapa nilai dari maxnodes. Berikut langkahnya :
+
+1. Create a list
+2. Create a variable with the best value of the parameter mtry; WAJIB
+3. Create the loop
+4. Store the current value of maxnode
+5. Summarize the results
+```{r}
+store_maxnode <- list()
+tuneGrid <- expand.grid(.mtry = best_mtry)
+for (maxnodes in c(2: 5)) {
+    set.seed(1234)
+    rf_maxnode <- train(Target~.,
+        data = trainData,
+        method = "rf",
+        metric = "Accuracy",
+        tuneGrid = tuneGrid,
+        trControl = trControl,
+        importance = TRUE,
+        nodesize = 14,
+        maxnodes = maxnodes,
+        ntree = 300)
+    current_iteration <- toString(maxnodes)
+    store_maxnode[[current_iteration]] <- rf_maxnode
+}
+```
+
+```{r}
+results_mtry <- resamples(store_maxnode)
+summary(results_mtry)
+```
+
+Penjelasan kode program:
+
+store_maxnode <- list(): Hasil dari model disimpan dalam list expand.grid(.mtry=best_mtry): menggunakan nilai terbaik dari mtry for (maxnodes in c(2:5)) { … }: mengevaluasi model dengan nilai maxnote dari 2 sampai dengan 5 maxnodes=maxnodes: Untuk setiap iterasi, maxnodes adalah sama dengan maxnodes saat ini. yaitu 2, 3, 4 … key <- toString(maxnodes): simpan sebagai string variable dari nilai maxnode store_maxnode[[key]] <- rf_maxnode: simpan hasil model dalam list/ resamples(store_maxnode): Arrange the results of the model summary(results_mtry): tampilkan seluruh kombinasi
+
+Nilai maxnode terakhir yang memiliki nilai akurasi tertinggi. Kemudian dicoba dengan nilai tertinggi apakah diperoleh score tertinggi.
+
+```{r}
+store_maxnode <- list()
+tuneGrid <- expand.grid(.mtry = best_mtry)
+for (maxnodes in c(5: 10)) {
+    set.seed(1234)
+    rf_maxnode <- train(Target~.,
+        data = trainData,
+        method = "rf",
+        metric = "Accuracy",
+        tuneGrid = tuneGrid,
+        trControl = trControl,
+        importance = TRUE,
+        nodesize = 14,
+        maxnodes = maxnodes,
+        ntree = 300)
+    key <- toString(maxnodes)
+    store_maxnode[[key]] <- rf_maxnode
+}
+```
+
+```{r}
+results_mtry <- resamples(store_maxnode)
+summary(results_mtry)
+```
+##Find the best of ntress
+setelah mendapatkan best mtry dan maxnode, selanjutkan dapat melakukan tuning pada jumlah trees. Cara yang dilakukan sama dengan maxnode.
+```{r}
+store_maxtrees <- list()
+for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)) {
+    set.seed(5678)
+    rf_maxtrees <- train(Target~.,
+        data = trainData,
+        method = "rf",
+        metric = "Accuracy",
+        tuneGrid = tuneGrid,
+        trControl = trControl,
+        importance = TRUE,
+        nodesize = 14,
+        maxnodes = 4,
+        ntree = ntree)
+    key <- toString(ntree)
+    store_maxtrees[[key]] <- rf_maxtrees
+}
+```
+
+```{r}
+results_tree <- resamples(store_maxtrees)
+summary(results_tree)
+```
+
+```{r}
+fit_rf <- train(Target~.,
+    trainData,
+    method = "rf",
+    metric = "Accuracy",
+    tuneGrid = tuneGrid,
+    trControl = trControl,
+    importance = TRUE,
+    nodesize = 14,
+    ntree = 300,
+    maxnodes = 14)
+```
+
+```{r}
+print(fit_rf)
+```
+
+###Step 4) : Visualisasi Model
+```{r}
+plot(rf_default)
+```
+
+```{r}
+varImp(rf_default)
+```
+
+###Step 5) Evaluasi model
+Evaluasi model dengan menggunakan data testing. Menggunakan library caret function predict
+```{r}
+library(caret)
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+str(testData)
+```
+
+```{r}
+prediksi <- predict(rf_default,testData)
+prediksi
+```
+
+```{r}
+confusionMatrix(table(testData$Target,prediksi))
+```
+
+```{r}
+varImpPlot(rf_default2)
+```
+
+## F. Bagging CART: Bentuk ensemble
+
+
+### Step) Membuat training data dan merubah kolom target menjadi factor
+```{r}
+library(ipred)
+```
+
+```{r}
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+trainData$Target <- factor(trainData$Target)
+str(trainData)
+trainData
+```
+
+### Step) : Membangun model
+untuk membangun model, gunakan fungsi **bagging** dari library **ipred**.
+```{r}
+myFormula <- Target~Age+Sex+CP+Trestbps+Chol+Fbs+Restecg+Thalach+Exang+Oldpeak+Slope+Ca+Thal
+
+fit <-bagging(myFormula,data=trainData,ntree=10)
+fit
+```
+
+### Step) : Membuat prediksi
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+
+str(testData)
+testData
+
+```
+
+
+```{r}
+#membuat prediksi (Bagging)
+library(caret)
+```
+
+```{r}
+fit_prediksi <- predict(fit,newdata=testData)
+```
+
+```{r}
+confusionMatrix(table(fit_prediksi,testData$Target))
+```
+
+## G. Boosted C5.0
+
+### Step) Membuat training data dan merubah kolom target menjadi factor
+```{r}
+library(C50)
+```
+
+```{r}
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+trainData$Target <- as.factor(trainData$Target)
+
+str(trainData)
+trainData
+```
+
+### Step) : Membangun model
+untuk membangun model, gunakan fungsi **C5.0** dari library **C50**.
+```{r}
+##Membangun Model
+myFormula <- Target~Age+Sex+CP+Trestbps+Chol+Fbs+Restecg+Thalach+Exang+	Oldpeak+Slope+Ca+Thal
+
+fit <-C5.0(myFormula,data=trainData,trial=10)
+print(fit)
+summary(fit)
+```
+
+### Step) : Membuat prediksi
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+testData$Target <- factor(testData$Target)
+
+str(testData)
+testData
+```
+
+```{r}
+library(caret)
+fit_prediksi <- predict(fit,newdata=testData)
+confusionMatrix(table(fit_prediksi,testData$Target))
+```
+
+## H. Algoritma naiveBayes
+
+```{r}
+library(klaR)
+```
+
+### Step) Membuat training data dan melakukan perubahan factor pada semua kolom
+```{r}
+##data training
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+
+trainData$Age <- as.factor(trainData$Age)
+trainData$Sex <- as.factor(trainData$Sex)
+trainData$CP <- as.factor(trainData$CP)
+trainData$Trestbps <- as.factor(trainData$Trestbps)
+trainData$Chol <- as.factor(trainData$Chol)
+trainData$Fbs <- as.factor(trainData$Fbs)
+trainData$Restecg <- as.factor(trainData$Restecg)
+trainData$Thalach <- as.factor(trainData$Thalach)
+trainData$Exang <- as.factor(trainData$Exang)
+trainData$Oldpeak <- as.factor(trainData$Oldpeak)
+trainData$Slope <- as.factor(trainData$Slope)
+trainData$Ca <- as.factor(trainData$Ca)
+trainData$Thal <- as.factor(trainData$Thal)
+trainData$Target <- as.factor(trainData$Target)
+
+str(trainData)
+trainData
+```
+
+### Step) : Membangun model
+untuk membangun model, gunakan fungsi **naiveBayes** dari library **klar**.
+```{r}
+library(e1071)
+fit <- naiveBayes(Target~., data=trainData)
+print(fit)
+summary(fit)
+```
+
+### Step) : Membuat prediksi
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+## Data Testing
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+
+testData$Age <- factor(testData$Age)
+testData$Sex <- factor(testData$Sex)
+testData$CP <- factor(testData$CP)
+testData$Trestbps <- factor(testData$Trestbps)
+testData$Chol <- factor(testData$Chol)
+testData$Fbs <- factor(testData$Fbs)
+testData$Restecg <- factor(testData$Restecg)
+testData$Thalach <- factor(testData$Thalach)
+testData$Exang <- factor(testData$Exang)
+testData$Oldpeak <- factor(testData$Oldpeak)
+testData$Slope <- factor(testData$Slope)
+testData$Ca <- factor(testData$Ca)
+testData$Thal <- factor(testData$Thal)
+testData$Target <- factor(testData$Target)
+
+str(testData)
+testData
+```
+
+```{r}
+# membuat prediksi
+prediksi <- predict(fit,newdata=testData)
+prediksi
+```
+
+```{r}
+#evaluasi model
+table(prediksi,testData$Target)
+```
+
+```{r}
+#confusion matrix
+confusionMatrix(table(prediksi,testData$Target))
+```
+
+## I. Algoritma KNN
+
+### Step) Membuat training data dan merubah kolom target menjadi factor
+```{r}
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+
+trainData$Age <- as.factor(trainData$Age)
+trainData$Sex <- as.factor(trainData$Sex)
+trainData$CP <- as.factor(trainData$CP)
+trainData$Trestbps <- as.factor(trainData$Trestbps)
+trainData$Chol <- as.factor(trainData$Chol)
+trainData$Fbs <- as.factor(trainData$Fbs)
+trainData$Restecg <- as.factor(trainData$Restecg)
+trainData$Thalach <- as.factor(trainData$Thalach)
+trainData$Exang <- as.factor(trainData$Exang)
+trainData$Oldpeak <- as.factor(trainData$Oldpeak)
+trainData$Slope <- as.factor(trainData$Slope)
+trainData$Ca <- as.factor(trainData$Ca)
+trainData$Thal <- as.factor(trainData$Thal)
+trainData$Target <- as.factor(trainData$Target)
+
+str(trainData)
+trainData
+```
+
+### Step) Membuat testing data dan merubah kolom target menjadi factor
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+
+testData$Age <- factor(testData$Age)
+testData$Sex <- factor(testData$Sex)
+testData$CP <- factor(testData$CP)
+testData$Trestbps <- factor(testData$Trestbps)
+testData$Chol <- factor(testData$Chol)
+testData$Fbs <- factor(testData$Fbs)
+testData$Restecg <- factor(testData$Restecg)
+testData$Thalach <- factor(testData$Thalach)
+testData$Exang <- factor(testData$Exang)
+testData$Oldpeak <- factor(testData$Oldpeak)
+testData$Slope <- factor(testData$Slope)
+testData$Ca <- factor(testData$Ca)
+testData$Thal <- factor(testData$Thal)
+testData$Target <- factor(testData$Target)
+
+str(testData)
+testData
+```
+
+### Step: Membangun model
+untuk membangun model, gunakan fungsi **knn** dari library **class**.
+
+```{r}
+#Membangun model k-nn
+library(class)
+```
+
+```{r}
+set.seed(200)
+ctrl <- trainControl(method="repeatedcv",repeats = 3)
+knnFit <- train(Target ~ ., data = trainData, method = "knn", trControl = ctrl, preProcess = c("center","scale"), tuneLength = 5)
+#Output of kNN fit
+knnFit
+```
+
+### Step : Membuat prediksi
+```{r}
+plot(knnFit)
+```
+
+```{r}
+knnPredict <- predict(knnFit,newdata = testData)
+knnPredict
+#Get the confusion matrix to see accuracy value and other parameter values
+confusionMatrix(knnPredict, testData$Target)
+```
+
+## J. Algoritma SVM
+
+### Step) Membuat training data dan melakukan perubahan factor pada kolom Target
+```{r}
+#memanggil data training
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+trainData$Target <- as.factor(trainData$Target)
+
+str(trainData)
+trainData
+```
+
+### Step) Membuat testing data dan melakukan perubahan factor pada kolom Target
+```{r}
+#memanggil data testing
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+testData$Target <- factor(testData$Target)
+
+str(testData)
+testData
+```
+
+### Step: Membangun model
+untuk membangun model, gunakan fungsi **SVM** dari library **e1071**.
+```{r}
+library(e1071)
+
+svmfit <- svm(formula = Target ~ Age+Sex+CP+Trestbps+Chol+Fbs+Restecg+Thalach+Exang+Oldpeak+Slope+Ca+Thal,
+              data = trainData,
+              type = 'C-classification',
+              kernel = 'linear',
+              cost = 10,
+              scale = TRUE)
+
+```
+
+```{r}
+plot(svmfit, trainData, Age ~ Trestbps)
+```
+
+```{r}
+plot(trainData$Age, trainData$Trestbps, col = trainData$Target)
+```
+
+
+### Step: Membuat prediksi
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+#menghitung akurasi
+library(caret)
+```
+
+```{r}
+test_pred <- predict(svmfit,newdata=testData)
+test_pred
+```
+
+```{r}
+confusionMatrix(table(test_pred,testData$Target))
+plot(svmfit,data=testData,Age ~ Trestbps)
+```
+
+Berikut adalah akurasi dari setiap algoritma:
+
+| NO  | Algoritma        | Package         | Fungsi          | Akurasi |
+|----|-------------------|------------------|----------------|---------|
+| 1  | CART              | rpart            | rpart          | 0.8333  |
+| 2  | C4.5              | RWeka            | J48            | 0.55    |
+| 3  | PART              | RWeka            | PART           | 0.4833  |
+| 4  | CTREE             | party            | ctree          | 0.5833  |
+| 5  | Random Forest     | randomForest     | random Forest  | 1       |
+| 6  | Bagging CART      | ipred            | bagging        | 1       |
+| 7  | BoostedC5.0       | C50              | C5.0           | 1       |
+| 8  | NaiveBayesian     | klar             | naiveBayes     | 0.9667  |
+| 9  | KNN               | caret            | knn            | 0.55    |
+| 10 | SVM               | e1071            | SVM            | 0.6833  |
+| 11 | ANN               | neuralnet        | neuralnet      | 0.2     |
+
+
+
+
+
+
+
+
+
+
+
+
+

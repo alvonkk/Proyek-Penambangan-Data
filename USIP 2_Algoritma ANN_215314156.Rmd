@@ -1,0 +1,117 @@
+---
+title: "ALGORTIMA ANN"
+author: "Alvon Kaka"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## K. Algoritma ANN
+
+### Step) Membuat training data dan merubah kolom target menjadi factor
+```{r}
+trainData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\heart_disease_dataset.csv")
+
+
+str(trainData)
+trainData
+```
+
+### Step) Membuat testing data dan merubah kolom target menjadi factor
+```{r}
+testData <- read.csv("D:\\KULIAH\\Dataset\\Pen data\\testData.csv")
+
+
+str(testData)
+testData
+```
+
+### Step: Membangun model dengan menggunakan data training
+untuk membangun model, gunakan fungsi **neuralnet** dari library **neuralnet**.
+```{r}
+library(neuralnet)
+```
+
+```{r}
+fit <- neuralnet(Target ~ Age + Sex + CP + Trestbps + Chol + Fbs + Restecg + Thalach + Exang + Oldpeak + Slope + Ca + Thal,
+                 data = trainData, 
+                 hidden = c(6), 
+                 rep = 5, 
+                 linear.output = FALSE, 
+                 lifesign = "minimal", 
+                 stepmax = 1000000,
+                 threshold = 0.001)
+```
+
+```{r}
+summary(fit)
+```
+
+### Step: Visualiasi data training
+```{r}
+plot(fit,rep="best")
+```
+
+### Step: Evaluasi model (prediksi, confusion matrix)
+Untuk membuat prediksi, menggunakan fungsi **predict()**.
+```{r}
+#Evaluasi model (prediksi, confusion matrix)
+library(caret)
+```
+
+```{r}
+testData[] <- lapply(testData, as.numeric)
+heart.prediction <- predict(fit, newdata = testData)
+idx <- apply(heart.prediction, 1, which.max)
+predicted <- testData$Target[idx]
+predicted
+```
+
+```{r}
+table(predicted, testData$Target)
+```
+
+```{r}
+heart.prediction <- predict(fit, newdata = testData, type = "class")
+#mengubah testData$Target ke dalam factor
+actual <- as.factor(testData$Target)
+```
+
+```{r}
+#mengubah 'dataset.prediction' menjadi factor
+predicted <- as.factor(heart.prediction)
+```
+
+```{r}
+#membuat confusion matrix
+conf_matrix <- table(Actual = actual, Predicted = predicted)
+print(conf_matrix)
+```
+
+```{r}
+#menghitung akurasi
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+print(paste("Accuracy:", accuracy))
+```
+
+Berikut adalah akurasi dari setiap algoritma:
+
+| NO  | Algoritma        | Package         | Fungsi          | Akurasi |
+|----|-------------------|------------------|----------------|---------|
+| 1  | CART              | rpart            | rpart          | 0.8333  |
+| 2  | C4.5              | RWeka            | J48            | 0.55    |
+| 3  | PART              | RWeka            | PART           | 0.4833  |
+| 4  | CTREE             | party            | ctree          | 0.5833  |
+| 5  | Random Forest     | randomForest     | random Forest  | 1       |
+| 6  | Bagging CART      | ipred            | bagging        | 1       |
+| 7  | BoostedC5.0       | C50              | C5.0           | 1       |
+| 8  | NaiveBayesian     | klar             | naiveBayes     | 0.9667  |
+| 9  | KNN               | caret            | knn            | 0.55    |
+| 10 | SVM               | e1071            | SVM            | 0.6833  |
+| 11 | ANN               | neuralnet        | neuralnet      | 0.33    |
+
+
